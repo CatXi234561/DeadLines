@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Events;
 
 public class CountdownTimer : MonoBehaviour
 {
@@ -7,11 +8,22 @@ public class CountdownTimer : MonoBehaviour
 [SerializeField] private float countdownDuration = 900f; // 15 minutes
 //private float previousTimeRemaining = -1f;
 private float timeRemaining = 0f;
+private bool isRunning;
+[SerializeField] private UnityEvent OnFinished = new UnityEvent();
+
+
+    public void StartTimer()
+    {
+        timeRemaining = countdownDuration;
+        isRunning = true;
+    }
 
 
     // Update is called once per frame
     void Update()
     {
+        if (!isRunning) return;
+
         if (digits.Length < 4)
         {Debug.LogError("CountdownTimer requires at least 4 digits assigned for MM:SS display.");
         return;}
@@ -34,7 +46,10 @@ private float timeRemaining = 0f;
         if (timeRemaining <= 0)
         {
             // Countdown finished, you can add any additional logic here if needed
+            OnFinished.Invoke();
+            isRunning = false;
             return;
         }
     }
+    
 }
