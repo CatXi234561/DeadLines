@@ -1,55 +1,73 @@
+using System;
 using UnityEngine;
 using UnityEngine.Events;
 
 public class CountdownTimer : MonoBehaviour
 {
-[SerializeField] private SevenSegmentDigit[] digits;
-[Tooltip("Countdown duration in seconds")]
-[SerializeField] private float countdownDuration = 900f; // 15 minutes
-//private float previousTimeRemaining = -1f;
-private float timeRemaining = 0f;
-private bool isRunning;
-[SerializeField] private UnityEvent OnFinished = new UnityEvent();
+    [SerializeField] private SevenSegmentDigit[] digits;
+    [Tooltip("Countdown duration in seconds")]
+    [SerializeField] private float countdownDuration = 900f;
 
+    private float timeRemaining;
+    private bool isRunning;
+    [SerializeField] private UnityEvent OnFinished = new UnityEvent();
+
+    public event Action Finished;
+    public float TimeRemaining => timeRemaining;
+    public bool IsRunning => isRunning;
 
     public void StartTimer()
     {
-        timeRemaining = countdownDuration;
+        timeRemaining = Mathf.Max(0f, countdownDuration);
         isRunning = true;
+        UpdateDisplay();
+
+        if (timeRemaining <= 0f)
+            Finish();
     }
 
-
-    // Update is called once per frame
-    void Update()
+    public void StopTimer()
     {
-        if (!isRunning) return;
+        isRunning = false;
+    }
 
-        if (digits.Length < 4)
-        {Debug.LogError("CountdownTimer requires at least 4 digits assigned for MM:SS display.");
-        return;}
-        // if (timeRemaining == previousTimeRemaining) return; // Only update when time changes
-        // previousTimeRemaining = timeRemaining; // Store the last time remaining to avoid unnecessary updates
+    private void Update()
+    {
+        if (!isRunning)
+            return;
 
-        timeRemaining = Mathf.Max(0, countdownDuration - Time.timeSinceLevelLoad);
-        int minutes = Mathf.FloorToInt(timeRemaining / 60);
-        int seconds = Mathf.FloorToInt(timeRemaining % 60);
+        timeRemaining = Mathf.Max(0f, timeRemaining - Time.deltaTime);
+        UpdateDisplay();
 
-        // digits in MM:SS
-        if (digits.Length >= 4)
+        if (timeRemaining <= 0f)
+            Finish();
+    }
+
+    private void UpdateDisplay()
+    {
+        if (digits == null || digits.Length < 4)
         {
-            digits[0].SetDigit(minutes / 10);
-            digits[1].SetDigit(minutes % 10);
-            digits[2].SetDigit(seconds / 10);
-            digits[3].SetDigit(seconds % 10);
-        }
-
-        if (timeRemaining <= 0)
-        {
-            // Countdown finished, you can add any additional logic here if needed
-            OnFinished.Invoke();
-            isRunning = false;
+            Debug.LogError("CountdownTimer needs four SevenSegmentDigit references for an MM:SS display.", this);
             return;
         }
+
+        int totalSeconds = Mathf.CeilToInt(timeRemaining);
+        int minutes = totalSeconds / 60;
+        int seconds = totalSeconds % 60;
+
+        digits[0].SetDigit((minutes / 10) % 10);
+        digits[1].SetDigit(minutes % 10);
+        digits[2].SetDigit(seconds / 10);
+        digits[3].SetDigit(seconds % 10);
     }
-    
+
+    private void Finish()
+    {
+        if (!isRunning)
+            return;
+
+        isRunning = false;
+        OnFinished.Invoke();
+        Finished?.Invoke();
+    }
 }
