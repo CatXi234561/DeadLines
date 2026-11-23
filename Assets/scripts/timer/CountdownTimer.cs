@@ -30,6 +30,12 @@ public class CountdownTimer : MonoBehaviour
     {
         isRunning = false;
     }
+    public void ResetTimer()
+    {
+        timeRemaining = Mathf.Max(0f, countdownDuration);
+        isRunning = false;
+        UpdateDisplay();
+    }
 
     private void Update()
     {
