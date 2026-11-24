@@ -15,10 +15,12 @@ public class CountdownTimer : MonoBehaviour
     public event Action Finished;
     public float TimeRemaining => timeRemaining;
     public bool IsRunning => isRunning;
-
-    public void StartTimer()
+    void Start()
     {
         timeRemaining = Mathf.Max(0f, countdownDuration);
+    }
+    public void StartTimer()
+    {
         isRunning = true;
         UpdateDisplay();
 
@@ -33,7 +35,6 @@ public class CountdownTimer : MonoBehaviour
     public void ResetTimer()
     {
         timeRemaining = Mathf.Max(0f, countdownDuration);
-        isRunning = false;
         UpdateDisplay();
     }
 
